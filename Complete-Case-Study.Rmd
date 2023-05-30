@@ -1,0 +1,559 @@
+---
+title: "Cyclist Bike_Share Analysis"
+author: "Sebastine Amede"
+date: "2023-05-22"
+output:
+  html_document: 
+    highlight: espresso
+    toc: yes
+  word_document: default
+---
+
+# Cyclist Bike_Share Analysis
+
+This is an in-depth analysis on how Annual members and casual members use Cyclist differently.
+
+-   **Background:** I am a junior data analyst at Cyclists, a bike sharing company, and that the company's success relies on maximizing the number of annual memberships. The objective of this analysis, is to understand how annual members and casual riders use *Cyclist bikes* differently.
+
+-   **Business Task:** The task at hand is about understanding the different bike usage patterns of the casual members riders and the annual member riders, in order to create a new strategy to convert casual members to annual members with the aim of maximizing profit for the company.
+
+-   **Data Sources:** For this analysis i have been provided with relevant dataset from the company and i would be making use a 12months data from 2022 for this analysis. such as cyclist_data_01 (January dataset), cyclist_data_02 (February dataset), and so on, which contain information about rides, ride duration, stations, and membership types.
+
+-   **Importance of the Analysis:** The insights gained from understanding the behavior of annual members and casual riders can help in developing targeted marketing campaigns and improving the company's overall profitability
+
+-   **Structure of the Report:** I will be documenting the data cleaning and manipulation steps, provide a summary of the analysis, present key findings, share supporting visualizations, and conclude with actionable recommendations.
+
+-   **Tools Used** Data cleaning, Wrangling, Preparing, Analyzing and Visualization will be done using R programming Language on R-Studio.
+
+```{r}
+options(repos = "https://cran.rstudio.com/")
+
+```
+
+# Starting off analysis by installing and loading required packages
+
+```{r}
+install.packages("readr")
+library(readr)
+```
+
+```{r loading Package, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+cyclist_data_01 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_01.csv") #loading january data
+
+cyclist_data_02 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_02.csv") #loading February data
+
+cyclist_data_03 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_03.csv") #loading March data
+
+cyclist_data_04 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_04.csv") #loading April data
+
+cyclist_data_05 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_05.csv") #loading May data
+
+cyclist_data_06 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_06.csv") #loading June data
+
+cyclist_data_07 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_07.csv") #loading July data
+
+cyclist_data_08 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_08.csv") #loading August data 
+
+cyclist_data_09 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_09.csv") #loading September data
+
+cyclist_data_10 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_10.csv") #loading October data
+
+cyclist_data_11 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_11.csv") #loading November data
+
+cyclist_data_12 <- read_csv("~/Downloads/2022 cyclist data/cyclist_data_12.csv") #loading December data
+
+
+
+install.packages("tidyverse") #installing tidyverse package 
+
+install.packages("here") #installing here package
+
+install.packages("janitor") #installing janitor package
+install.packages("stringr") #installing stringr package
+
+install.packages("magrittr") #installing magrittr package
+
+
+# loading all installed packages
+
+library(tidyverse)
+library(here)
+library(janitor)
+library(stringr)
+library(magrittr)
+```
+
+### Loading and observing data
+
+```{r loading and observing, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+
+# view and compare column names each of the files
+
+head(cyclist_data_01)
+head(cyclist_data_02)
+head(cyclist_data_03)
+head(cyclist_data_04)
+head(cyclist_data_05)
+head(cyclist_data_06)
+head(cyclist_data_07)
+head(cyclist_data_08)
+head(cyclist_data_09)
+head(cyclist_data_10)
+head(cyclist_data_11)
+head(cyclist_data_12)
+
+colnames(cyclist_data_01)
+colnames(cyclist_data_02)
+colnames(cyclist_data_03)
+colnames(cyclist_data_04)
+colnames(cyclist_data_05)
+colnames(cyclist_data_06)
+colnames(cyclist_data_07)
+colnames(cyclist_data_08)
+colnames(cyclist_data_09)
+colnames(cyclist_data_10)
+colnames(cyclist_data_11)
+colnames(cyclist_data_12)
+
+# column names are in the same order and match perfectly.
+# we can use a command to join them into one file
+```
+
+## Wrangle and merge data
+
+```{r wrangle and merge, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+colnames(cyclist_data_01 )
+
+# Inspect the data frames and look for incongruencies
+str(cyclist_data_01)
+str(cyclist_data_02)
+str(cyclist_data_03)
+str(cyclist_data_04)
+str(cyclist_data_05)
+str(cyclist_data_06)
+str(cyclist_data_07)
+str(cyclist_data_08)
+str(cyclist_data_09)
+str(cyclist_data_10)
+str(cyclist_data_11)
+str(cyclist_data_12)
+
+#merging cyclist from January- December into one single data frame
+
+cyclist_data_2020<- bind_rows(cyclist_data_01, cyclist_data_02, cyclist_data_03, cyclist_data_04, cyclist_data_05, cyclist_data_06, cyclist_data_07, cyclist_data_08, cyclist_data_09, cyclist_data_10, cyclist_data_11, cyclist_data_12)
+```
+
+## Prepare, Clean and Add Data for Analysis
+
+```{r prepare, add and clean, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+# inspecting the merged table
+
+
+str(cyclist_data_2020) # see column names and data type
+
+
+nrow(cyclist_data_2020) # check numbers of rows
+
+
+dim(cyclist_data_2020) # dimension of data frame
+
+
+
+summary(cyclist_data_2020) # statistical summary for numerical values
+
+```
+
+# Prepare
+
+```{r remove irreverent variables, warning=FALSE, cache=TRUE}
+cyclist_data_2020<- cyclist_data_2020 %>% 
+  select(-ride_id, -start_station_name, -start_station_id, -end_station_name, -end_station_id) # selecting all columns except those in the parenthesis  
+colnames(cyclist_data_2020)
+```
+
+\*1. we need to add another column to find the trip duration for every ride
+
+\*2. we need a seperate column for day for each ride to provide additional opportunities to aggregate the data
+
+```{r}
+cyclist_data_2020<- cyclist_data_2020 %>% 
+  mutate(trip_duration= ended_at-started_at) # calculating for trip duration and adding to a new column (trip_duration)
+
+```
+
+### Sorting data to find outliers on the trip_duration column
+
+```{r sorting data, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+cyp<-cyclist_data_2020 %>% 
+  arrange(trip_duration) # Sorting trip_duration to check for outliers 
+View(cyp)
+```
+
+OBSERVATION
+
+\*1. there are some rides where trip duration shows negative due to some erroneous data input
+
+\*2 there are also some rides where trips are really small so we would add a column calculate the distance from the longitude and Latitude using "haversine formula" to look at the distances of those rides.
+
+### Calculating for Ride Distance
+
+```{r calculating the distance, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+
+# Function to convert degrees to radians
+to_radians <- function(degrees) {
+  return(degrees * pi / 180)
+}
+
+# Function to calculate distance using Haversine formula
+haversine_distance <- function(lat1, lon1, lat2, lon2) {
+  # Earth's radius in kilometers
+  R <- 6371
+  
+  # Convert coordinates to radians
+  lat1_rad <- to_radians(lat1)
+  lon1_rad <- to_radians(lon1)
+  lat2_rad <- to_radians(lat2)
+  lon2_rad <- to_radians(lon2)
+  
+  # Calculate differences in latitude and longitude
+  dlat <- lat2_rad - lat1_rad
+  dlon <- lon2_rad - lon1_rad
+  
+  # Apply Haversine formula
+  a <- sin(dlat / 2)^2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)^2
+  c <- 2 * atan2(sqrt(a), sqrt(1 - a))
+  distance <- R * c
+  
+  return(distance)
+}
+
+# Calculate distance for each row in the dataset
+cyclist_data_2020$distance <- haversine_distance(cyclist_data_2020$start_lat,
+                                                   cyclist_data_2020$start_lng,
+                                                   cyclist_data_2020$end_lat,
+                                                   cyclist_data_2020$end_lng)
+
+# View the updated dataset
+head(cyclist_data_2020)
+
+#distance are in kilometer
+
+```
+
+```{r renaming distance column to distance_in_km, warning=FALSE, cache=TRUE}
+cyclist_data_2020<- rename(cyclist_data_2020, distance_in_km= distance) # changing the distance column name to distance_in_km
+head(cyclist_data_2020) # view changed column name
+```
+
+## Sorting Data for Observation
+
+```{r sorting to observe data, warning=FALSE,cache=TRUE}
+arrange(cyclist_data_2020, trip_duration, distance_in_km) # sorting for observation
+
+```
+
+### Creating a new column for Day of the week
+
+we use the mutate() function to create two new columns: "start_day_of_week" and "end_day_of_week". We extract the day of the week from the "started_at" and "ended_at" columns using the wday() function. The label = TRUE argument ensures that the day of the week is represented by labels.
+
+```{r separate day of the week, message=FALSE, warning=FALSE, results = "hide",cache=TRUE }
+cyclist_data_2022 <- cyclist_data_2020 %>% 
+  mutate(start_day_of_week = wday(started_at, label = TRUE), 
+         end_day_of_week = wday(ended_at, label = TRUE)) # creating a new column to extract days of the week
+View(cyclist_data_2022)
+```
+
+# Data Cleaning
+
+To avoid incorrect records on our analysis the following data will be removed:
+
+-   Trips with N/A data
+
+-   Trips that lasted less than 60 secs
+
+-   Trips that lasted more than 3600 secs (1 day)
+
+-   Trip length with distance less than 0.5 km
+
+-   Trip length with distance more than 1000km
+
+### Removing Bad Data
+
+```{r removing bad data, warning=FALSE, cache=TRUE}
+cyclist_data_2022<- cyclist_data_2022 %>% 
+  filter(trip_duration>60, trip_duration<=86400, distance_in_km>0.5, distance_in_km<= 1000) #removing bad data
+```
+
+### Observing The Cleaned Data Frame
+
+```{r observing filtered df, message=FALSE, warning=FALSE,cache=TRUE}
+cyclist_data_2022 %>% 
+  arrange(distance_in_km) #observing clean data
+
+```
+
+### Removing N/A values
+
+```{r removing NA values from the whole data set, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+cyclist_data_2022 <- cyclist_data_2022 %>% # removing N.A values
+  filter(complete.cases(.))
+
+```
+
+# Descriptive Analysis
+
+```{r average trip duration for all rides, warning=FALSE}
+mean(cyclist_data_2022$trip_duration) # average trip duration
+
+
+```
+
+```{r median trip duration}
+median(cyclist_data_2022$trip_duration) # midpoint number in the ascending array of trip duration
+
+
+
+```
+
+```{r minimum trip duration}
+min(cyclist_data_2022$trip_duration) # minimum trip duration
+```
+
+```{r maximum trip duration}
+max(cyclist_data_2022$trip_duration) # maximum trip duration
+
+```
+
+```{r mean distance in km}
+mean(cyclist_data_2022$distance_in_km) # average distance
+
+
+```
+
+```{r median distance in km}
+median(cyclist_data_2022$distance_in_km) # midpoint number in assending array of distance
+
+```
+
+```{r minimum distance}
+min(cyclist_data_2022$distance_in_km) # shortest ride
+
+```
+
+```{r maximum distance}
+max(cyclist_data_2022$distance_in_km) # longest ride
+
+```
+
+### Statistical Summary by Rider Types
+
+```{r summary, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+summary_by_group<- cyclist_data_2022 %>% 
+  group_by(member_casual) %>% 
+  summarize(mean(trip_duration), mean(distance_in_km),median(trip_duration), median(distance_in_km), min(trip_duration), min(distance_in_km), max(trip_duration), max(distance_in_km)) # statistical summary by member rider and casual riders
+```
+
+Arranging the summary_data_frame because it has too many variables(9) compared to it observation(2). I am doing this by transposing the data frame, this would convert the df to matrix so after transposing I would convert back to data frame
+
+```{r transposing data frame, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+summary_by_group<- t(summary_by_group) # rearranging columns and rows by transposing
+```
+
+```{r naming columns, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+colnames(summary_by_group)<- c("casual_riders", "member_riders" ) # assigning column names
+```
+
+Converting the transposed matrix to a data frame
+
+```{r convert matrix to df, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+summary_by_group<- as.data.frame(summary_by_group) # converting summary data from matrix to data frame
+```
+
+```{r filtering out member_casual row, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+summary_by_group<- summary_by_group %>% 
+  filter(row.names(.) != "member_casual") # filtering out irrelevant row
+```
+
+```{r summary by group}
+head(summary_by_group) # viewing data frame
+```
+
+### Statistical Summary By Group And Day Of The Week
+
+```{r summary by group and wday, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+summary_by_group_2<- cyclist_data_2022 %>% 
+  group_by(member_casual, start_day_of_week) %>% 
+  summarize(mean(trip_duration), mean(distance_in_km),median(trip_duration), median(distance_in_km), min(trip_duration), min(distance_in_km), max(trip_duration), max(distance_in_km)) # statistical summary by groups and days of the week
+```
+
+### Statistical Summary By Group And Ride Type
+
+```{r summary by group and ride type, message=FALSE, warning=FALSE, results = "hide",cache=TRUE}
+summary_by_group_3<- cyclist_data_2022 %>% 
+  group_by(member_casual, rideable_type) %>% 
+  summarize(mean(trip_duration), mean(distance_in_km),median(trip_duration), median(distance_in_km), min(trip_duration), min(distance_in_km), max(trip_duration), max(distance_in_km)) # statistical summary by groups and ride type
+```
+
+### Finding The Number Of Casual Rides And The Number Of Member Rides
+
+```{r, warning=FALSE,cache=TRUE}
+
+casual_rides <- filter(cyclist_data_2022, member_casual == "casual") # filter the data set for casual riders
+
+
+member_rides <- filter(cyclist_data_2022, member_casual == "member") # filter the data set for member riders
+
+# Count the number of rides for each group
+casual_rides_count <- nrow(casual_rides)
+member_rides_count <- nrow(member_rides)
+
+# Print the results
+cat("Number of rides for casual riders:", casual_rides_count, "\n")
+cat("Number of rides for member riders:", member_rides_count, "\n")
+
+```
+
+# Visualizations
+
+```{r rider type count, warning=FALSE, cache=TRUE}
+ggplot(data = cyclist_data_2022)+
+  (mapping= aes(x=member_casual, fill= member_casual))+
+  geom_bar(width = 0.5)+
+  labs(title = "Number of Rides by Rider Type", x= "rider type")+
+  scale_fill_manual(values = c("casual"="#43BFc7", "member"= "#400080")) # viz for rider type count
+ 
+```
+
+### How Average Trip Varies Across Different Riders
+
+```{r, warning=FALSE, cache=TRUE}
+summary_data<- cyclist_data_2022 %>% 
+  group_by(member_casual) %>% 
+  summarize(avg_trip_duration= mean(trip_duration)) # summary data frame to create viz for average trip duration by rider type
+  
+```
+
+```{r average trip duration by rider type, warning=FALSE, cache=TRUE}
+ggplot(data = summary_data, aes(x= member_casual,y= avg_trip_duration, fill= member_casual))+
+  geom_bar(stat = "identity", width= 0.5)+
+  scale_fill_manual(values = c("casual"="#43BFc7", "member"= "#400080"))+
+  labs(title = "Average Trip Duration By Rider Type", x= "Member Type", y= "Average Trip Duration") # viz for average trip duration by rider type
+```
+
+### Members Ride Count By Day Of The Week
+
+```{r members ride count by day of the week, warning=FALSE, cache=TRUE}
+ggplot(data=cyclist_data_2022)+
+  (mapping= aes(x= start_day_of_week, fill= rideable_type))+
+  geom_bar(width = 0.5)+
+  facet_wrap(~member_casual)+
+  labs(title= "Members Ride Count by day of the week", x= "Day Of The Week") # viz for members ride count by day of the week
+```
+
+```{r average trip duration by ride type, warning=FALSE, cache=TRUE}
+
+ggplot(data= summary_by_group_3, aes(x= rideable_type, y= 'mean(trip_duration)', fill= rideable_type))+
+  geom_bar(stat = "identity", width= 0.5)+
+  scale_fill_manual(values = c("electric_bike" = "#400080", "classic_bike" = "#43bfc7", "docked_bike" = "#a74ac7"))+
+  labs(title = "Average Trip Duration By Ride types", x= "Ride Type", y= "Average Trip Duration") # average trip duration by ride type
+
+```
+
+### How Members Use Different Bike Types
+
+```{r how members use different ride type, warning=FALSE, cache=TRUE}
+
+# grouped bar chart
+
+ggplot(data = cyclist_data_2022, aes(x = rideable_type, fill = member_casual)) +
+  geom_bar(position = "dodge", stat = "count", width = 0.5)+ 
+  scale_fill_manual(values = c("casual"="#43BFc7", "member"= "#400080")) # change color
+
+```
+
+#### Pecentage Of Bike Type By User Group
+
+```{r, warning=FALSE, cache=TRUE}
+# Calculate the percentage of bike types for casual riders
+casual_percent<- cyclist_data_2022 %>% 
+  filter(member_casual== "casual") %>% 
+  count(rideable_type) %>% 
+  mutate(percentage= n/ sum(n)*100)
+
+# Calculate the percentage of bike types for annual members
+members_percent<- cyclist_data_2022 %>% 
+  filter(member_casual== "member") %>% 
+  count(rideable_type) %>% 
+  mutate(percentage= n/ sum(n)*100)
+
+# Combine the data for casual riders and annual members
+combined_data <- bind_rows(
+  data.frame(member_casual = "casual", casual_percent),
+  data.frame(member_casual = "member", members_percent)
+)
+
+# Create the stacked bar chart
+ggplot(data = combined_data, aes(x= member_casual, y= percentage, fill= rideable_type))+
+  geom_bar(stat = "identity", width = .5)+
+  labs(
+    title = "Percentage of Bike Type Use by Rider Group",
+    x = "Rider Group",
+    y = "Percentage",
+    fill = "Bike Type"
+  )+
+  scale_fill_manual(values = c("electric_bike" = "#400080", "classic_bike" = "#43bfc7", "docked_bike" = "#a74ac7"))
+
+
+```
+
+### How Docked Bikes Are Used By Day Of The Week
+
+```{r docked bike filter, warning=FALSE, cache=TRUE}
+docked_bike_obsv<- cyclist_data_2022 %>% 
+  filter(rideable_type== "docked_bike" ) # filtering for docked bike
+```
+
+```{r docked bike ride count by day of the week, warning=FALSE, cache=TRUE}
+
+ggplot(data= docked_bike_obsv)+
+  (mapping= aes(x= start_day_of_week, fill=rideable_type))+
+  geom_bar(width = 0.5)+
+  scale_fill_manual(values = c("docked_bike"= "#469d7c"))+
+  labs(title="Docked Bike Ride Count by Day Of The Week", x="days of the week")
+```
+
+# Key Findings
+
+1.  Usage of Docked Bikes: The analysis indicates that annual members do not use docked bikes, while casual members use them with low counts. This suggests that docked bikes may not be appealing to annual members.
+
+2.  Trip Duration and Distance: The analysis reveals that docked bikes have the highest mean trip duration and mean trip distance. This could indicate that casual members who use docked bikes tend to take longer rides compared to other ride types.
+
+3.  Weekday Usage Patterns: The data suggests that annual members use bikes more frequently on weekdays compared to casual members. This could be because annual members use bikes for commuting or regular transportation purposes.
+
+4.  Weekend Usage: The analysis indicates that casual members and annual members have similar frequency of bike usage on weekends. This suggests that weekend leisure activities might be a common motivation for both groups.
+
+5.  Casual members have high prefrence for Electric bikes. With electric bike accounting for 54.67% of the total bike ride for casual riders, while Annual members prefer Classic bike with a percentage of 51.1% of total ride attributed to Classic bike.
+
+# Summary
+
+In our analysis of Cyclistic bike usage, we compared the behavior of annual members and casual riders to understand how they differ. We found that annual members showed a significant preference for electric and classic bikes, while completely avoiding the use of docked bikes. On the other hand, casual riders used docked bikes but with a low frequency. Interestingly, docked bikes exhibited the highest mean trip duration and distance.
+
+Furthermore, we observed that annual members utilized bikes more frequently on weekdays, indicating a pattern of commuting or regular usage. In contrast, casual riders and annual members had similar usage frequencies on weekends. These findings suggest that there may be an opportunity to convert casual riders into annual members by enhancing the availability of docked bike stations in strategic locations throughout the city. This could provide convenience and encourage casual riders to choose bikes for their frequent commuting needs, potentially reducing reliance on other modes of transportation.
+
+Our analysis also revealed that casual riders showed a strong preference for electric bikes, while annual members favored classic bikes. This disparity in bike preferences suggests that these two groups of riders have different needs and preferences when it comes to their biking experiences. The higher usage of electric bikes by casual riders indicates a preference for the convenience and enjoyment that electric bikes provide. This could be attributed to factors such as ease of use, the ability to cover longer distances with less effort, or the desire for a more thrilling and engaging riding experience. On the other hand, the preference for classic bikes among annual members suggests a preference for a more traditional biking experience. This could be influenced by factors such as familiarity with classic bikes, a sense of comfort and control, or a desire for a more leisurely and relaxed riding experience.
+
+# Recommended Action
+
+### Product Recommendation
+
+1.  Ensure a sufficient supply of electric bikes and classic bikes based on the preferences of different rider groups to enhance customer satisfaction and improve overall ridership.
+
+2.  Docked bike stations should be strategically placed along popular commuting routes or near public transportation hubs, to facilitate seamless multi-modal transportation options for both casual members and annual members. This integration with other modes of transportation, such as buses or trains, can make the overall commuting experience more convenient and efficient.
+
+### Marketing recommendations
+
+1.  Conduct user surveys or feedback sessions with both casual members and potential annual members to provide valuable insights into their preferences, needs, and expectations regarding docked bike usage. This information can help in making informed decisions about the expansion and placement of docked bike stations to maximize their usage and convenience for both rider groups.
+
+2.  Targeted Marketing for Docked Bikes: Develop marketing strategies that highlight the benefits of using docked bikes, such as their reliability, availability, and suitability for longer rides. Tailor these strategies specifically to attract casual members and encourage them to become annual members.
+
+3.  Weekday Commuter Programs: Implement commuter-focused programs and incentives to target potential annual members. Emphasize the time-saving, cost-effective, and eco-friendly aspects of using bikes for daily commuting. Consider partnering with local businesses or organizations to provide additional incentives or discounts for annual members who use bikes for commuting.
